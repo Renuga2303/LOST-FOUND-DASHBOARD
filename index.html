@@ -1,0 +1,401 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Campus Lost & Found</title>
+
+<style>
+:root {
+  --primary: #4f46e5;
+  --dark: #172033;
+  --muted: #64748b;
+  --bg: #f4f6fb;
+  --border: #e2e8f0;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: var(--bg);
+  color: var(--dark);
+}
+header {
+  background: white;
+  padding: 18px 7%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 1px solid var(--border);
+}
+.logo { font-size: 21px; font-weight: bold; }
+.logo span { color: var(--primary); }
+header small { color: var(--muted); }
+main { max-width: 1100px; margin: 28px auto; padding: 0 18px; }
+.hero {
+  background: linear-gradient(120deg, #3730a3, #6366f1);
+  color: white;
+  border-radius: 18px;
+  padding: 30px;
+}
+.hero h1 { margin: 0 0 10px; font-size: 30px; }
+.hero p { line-height: 1.6; margin-bottom: 0; }
+.stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 15px;
+  margin: 20px 0;
+}
+.stat, .panel, .item {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 13px;
+  padding: 19px;
+}
+.stat p { color: var(--muted); margin: 0 0 8px; }
+.stat strong { font-size: 27px; }
+.layout {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 20px;
+  align-items: start;
+}
+h2 { font-size: 19px; margin-top: 0; }
+label {
+  display: block;
+  font-size: 13px;
+  font-weight: bold;
+  margin: 13px 0 6px;
+}
+input, select, textarea {
+  width: 100%;
+  padding: 11px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font: inherit;
+  background: white;
+}
+textarea { resize: vertical; min-height: 75px; }
+button {
+  border: 0;
+  border-radius: 8px;
+  padding: 11px 14px;
+  background: var(--primary);
+  color: white;
+  cursor: pointer;
+  font-weight: bold;
+}
+button:hover { opacity: .88; }
+.submit { width: 100%; margin-top: 16px; }
+.filters {
+  display: grid;
+  grid-template-columns: 1fr 145px 130px;
+  gap: 9px;
+  margin-bottom: 15px;
+}
+.items {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 13px;
+}
+.item h3 { margin: 12px 0 7px; overflow-wrap: anywhere; }
+.item p { color: var(--muted); font-size: 13px; line-height: 1.5; }
+.tag {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: bold;
+  padding: 5px 8px;
+  border-radius: 20px;
+  background: #e0e7ff;
+  color: #3730a3;
+}
+.tag.found { background: #dcfce7; color: #166534; }
+.tag.returned { background: #f1f5f9; color: #475569; }
+.actions { display: flex; gap: 7px; flex-wrap: wrap; margin-top: 12px; }
+.actions button { font-size: 12px; padding: 8px 10px; }
+.secondary { background: #e2e8f0; color: #1e293b; }
+.danger { background: #dc2626; }
+.empty {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 35px 10px;
+  color: var(--muted);
+}
+footer { text-align: center; padding: 25px; color: var(--muted); font-size: 12px; }
+
+@media (max-width: 760px) {
+  header { padding: 16px; }
+  header small { display: none; }
+  main { margin-top: 18px; }
+  .layout { grid-template-columns: 1fr; }
+  .stats { gap: 8px; }
+  .stat { padding: 13px; }
+  .stat strong { font-size: 22px; }
+  .filters { grid-template-columns: 1fr 1fr; }
+  .filters input { grid-column: 1 / -1; }
+  .items { grid-template-columns: 1fr; }
+  .hero h1 { font-size: 25px; }
+}
+</style>
+</head>
+
+<body>
+<header>
+  <div class="logo">Campus <span>Lost & Found</span></div>
+  <small>Find it. Report it. Return it.</small>
+</header>
+
+<main>
+  <section class="hero">
+    <h1>Lost something on campus?</h1>
+    <p>Report lost items, share things you've found, and help
+    reunite people with their belongings.</p>
+  </section>
+
+  <section class="stats">
+    <div class="stat">
+      <p>Total Reports</p>
+      <strong id="total">0</strong>
+    </div>
+    <div class="stat">
+      <p>Lost Items</p>
+      <strong id="lostCount">0</strong>
+    </div>
+    <div class="stat">
+      <p>Found Items</p>
+      <strong id="foundCount">0</strong>
+    </div>
+  </section>
+
+  <div class="layout">
+    <section class="panel">
+      <h2>＋ Report an Item</h2>
+      <form id="itemForm">
+        <label for="itemName">Item name *</label>
+        <input id="itemName" maxlength="70"
+          placeholder="e.g. Blue water bottle" required>
+
+        <label for="type">Report type *</label>
+        <select id="type" required>
+          <option value="Lost">I lost an item</option>
+          <option value="Found">I found an item</option>
+        </select>
+
+        <label for="category">Category *</label>
+        <select id="category" required>
+          <option>Electronics</option>
+          <option>ID Card</option>
+          <option>Books & Notes</option>
+          <option>Bags</option>
+          <option>Keys</option>
+          <option>Clothing</option>
+          <option>Accessories</option>
+          <option>Other</option>
+        </select>
+
+        <label for="location">Location *</label>
+        <input id="location" maxlength="100"
+          placeholder="e.g. Library" required>
+
+        <label for="date">Date *</label>
+        <input id="date" type="date" required>
+
+        <label for="description">Description</label>
+        <textarea id="description" maxlength="350"
+          placeholder="Colour, brand or other details"></textarea>
+
+        <label for="contact">Contact (optional)</label>
+        <input id="contact" maxlength="100"
+          placeholder="Email or preferred contact">
+
+        <button class="submit" type="submit">Submit Report</button>
+      </form>
+    </section>
+
+    <section>
+      <div class="panel">
+        <h2>Browse Reports</h2>
+        <div class="filters">
+          <input id="search" placeholder="Search items or locations..."
+            aria-label="Search reports">
+          <select id="filterType" aria-label="Filter by status">
+            <option value="All">All reports</option>
+            <option value="Lost">Lost only</option>
+            <option value="Found">Found only</option>
+          </select>
+          <select id="filterCategory" aria-label="Filter by category">
+            <option value="All">All categories</option>
+            <option>Electronics</option>
+            <option>ID Card</option>
+            <option>Books & Notes</option>
+            <option>Bags</option>
+            <option>Keys</option>
+            <option>Clothing</option>
+            <option>Accessories</option>
+            <option>Other</option>
+          </select>
+        </div>
+        <div id="items" class="items"></div>
+      </div>
+    </section>
+  </div>
+</main>
+
+<footer>
+  Campus Lost & Found Portal · Student Mini Project
+</footer>
+
+<script>
+const STORAGE_KEY = "campusLostFoundV1";
+
+const $ = id => document.getElementById(id);
+const form = $("itemForm");
+let reports = [];
+
+try {
+  const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+  reports = Array.isArray(saved) ? saved : [];
+} catch (error) {
+  reports = [];
+}
+
+$("date").value = new Date().toLocaleDateString("en-CA");
+
+function saveReports() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(reports));
+    return true;
+  } catch (error) {
+    alert("Could not save data in this browser. Check storage settings.");
+    return false;
+  }
+}
+
+function safeText(value) {
+  return String(value ?? "").replace(/[&<>"']/g, char => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;"
+  })[char]);
+}
+
+form.addEventListener("submit", event => {
+  event.preventDefault();
+
+  const report = {
+    id: (crypto.randomUUID ? crypto.randomUUID() :
+      Date.now().toString() + Math.random().toString(16).slice(2)),
+    name: $("itemName").value.trim(),
+    type: $("type").value,
+    category: $("category").value,
+    location: $("location").value.trim(),
+    date: $("date").value,
+    description: $("description").value.trim(),
+    contact: $("contact").value.trim(),
+    returned: false
+  };
+
+  if (!report.name || !report.location || !report.date) {
+    alert("Please fill in all required fields.");
+    return;
+  }
+
+  reports.unshift(report);
+  if (!saveReports()) {
+    reports.shift();
+    return;
+  }
+
+  form.reset();
+  $("date").value = new Date().toLocaleDateString("en-CA");
+  render();
+  alert("Report added successfully!");
+});
+
+function updateReport(id, action) {
+  const index = reports.findIndex(item => item.id === id);
+  if (index < 0) return;
+
+  if (action === "return") {
+    reports[index].returned = !reports[index].returned;
+  } else if (action === "delete") {
+    if (!confirm("Delete this report?")) return;
+    reports.splice(index, 1);
+  }
+
+  saveReports();
+  render();
+}
+
+function render() {
+  $("total").textContent = reports.length;
+  $("lostCount").textContent =
+    reports.filter(item => item.type === "Lost" && !item.returned).length;
+  $("foundCount").textContent =
+    reports.filter(item => item.type === "Found" && !item.returned).length;
+
+  const query = $("search").value.trim().toLowerCase();
+  const type = $("filterType").value;
+  const category = $("filterCategory").value;
+
+  const filtered = reports.filter(item => {
+    const searchable = [
+      item.name, item.location, item.category,
+      item.description, item.type
+    ].join(" ").toLowerCase();
+
+    return searchable.includes(query) &&
+      (type === "All" || item.type === type) &&
+      (category === "All" || item.category === category);
+  });
+
+  const container = $("items");
+
+  if (!filtered.length) {
+    container.innerHTML =
+      '<div class="empty">No reports found. Try another search or add a report!</div>';
+    return;
+  }
+
+  container.innerHTML = filtered.map(item => `
+    <article class="item">
+      <span class="tag ${item.type === "Found" ? "found" : ""}">
+        ${safeText(item.type)}
+      </span>
+      ${item.returned ? '<span class="tag returned">Returned</span>' : ""}
+      <h3>${safeText(item.name)}</h3>
+      <p><strong>Category:</strong> ${safeText(item.category)}<br>
+      <strong>Location:</strong> ${safeText(item.location)}<br>
+      <strong>Date:</strong> ${safeText(item.date)}</p>
+      ${item.description ?
+        `<p>${safeText(item.description)}</p>` : ""}
+      ${item.contact ?
+        `<p><strong>Contact:</strong> ${safeText(item.contact)}</p>` : ""}
+      <div class="actions">
+        <button data-action="return" data-id="${safeText(item.id)}"
+          class="secondary">${item.returned ? "Undo Returned" : "Mark Returned"}</button>
+        <button data-action="delete" data-id="${safeText(item.id)}"
+          class="danger">Delete</button>
+      </div>
+    </article>
+  `).join("");
+}
+
+$("search").addEventListener("input", render);
+$("filterType").addEventListener("change", render);
+$("filterCategory").addEventListener("change", render);
+
+$("items").addEventListener("click", event => {
+  const button = event.target.closest("button[data-action]");
+  if (!button) return;
+  updateReport(button.dataset.id, button.dataset.action);
+});
+
+render();
+</script>
+</body>
+</html>
